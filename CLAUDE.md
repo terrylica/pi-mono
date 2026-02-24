@@ -104,3 +104,4 @@ This is a fork of [badlogic/pi-mono](https://github.com/badlogic/pi-mono). Fork-
 | Skill              | Purpose                                                                                                                     |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
 | `pi-minimax-setup` | Minimax M2.5-highspeed provider setup, 1Password auth chain, pi binary builds, dual-tool wiring (Claude Code Max + Minimax) |
+| `pi-build-runtime` | Build pipeline (tsgo + bun build --compile), standalone binary compilation, cross-platform builds, runtime comparison       |
