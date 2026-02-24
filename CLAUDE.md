@@ -94,12 +94,47 @@ This is a fork of [badlogic/pi-mono](https://github.com/badlogic/pi-mono). Fork-
 | Agent instructions   | `CLAUDE.md` (this file)          | No                   |
 | Project skills       | `.claude/skills/`                | No                   |
 | Fork-local settings  | `.claude/settings.local.json`    | No (auto-gitignored) |
+| Pi skill symlinks    | `.pi/skills/` (gitignored)       | `.gitignore` only    |
 | API credentials      | `~/.pi/agent/auth.json`          | N/A (user-global)    |
+| Pi global settings   | `~/.pi/agent/settings.json`      | N/A (user-global)    |
 | Upstream code/config | `AGENTS.md`, `.pi/`, `packages/` | Yes                  |
 
 **Sync with upstream**: `git fetch upstream && git rebase upstream/main` — no conflicts expected since fork-specific files don't exist upstream.
 
+## Dual-Tool Setup
+
+Two independent tools share project skills from an SSoT:
+
+```
+.claude/skills/                         ← SSoT (committed)
+├── pi-minimax-setup/SKILL.md
+└── pi-build-runtime/SKILL.md
+     ↑                    ↑
+     │                    │
+Claude Code CLI           Pi Coding Agent
+(auto-discovers           (.pi/skills/ symlinks
+ .claude/skills/)          → .claude/skills/)
+```
+
+**Claude Code CLI** (Max subscription): Used for developing this repo. Auth via claude.ai OAuth. No `ANTHROPIC_API_KEY` env var (subscription handles it).
+
+**Pi Coding Agent** (compiled binary at `packages/coding-agent/dist/pi`): Auth via `~/.pi/agent/auth.json` using 1Password service token for non-interactive `op read`. Configured for MiniMax-M2.5-highspeed. Run with:
+
+```bash
+packages/coding-agent/dist/pi --provider minimax --model MiniMax-M2.5-highspeed
+```
+
+Multi-model cycling (Ctrl+P switches mid-session):
+
+```bash
+packages/coding-agent/dist/pi --models "MiniMax-M2.5-highspeed,MiniMax-M2.5,MiniMax-M2.1"
+```
+
+Add Anthropic models after `/login` in interactive mode, then cycle across providers.
+
 ## Project Skills
+
+Skills are auto-discovered by Claude Code from `.claude/skills/` and by Pi via symlinks in `.pi/skills/`. Read the SKILL.md files for full details.
 
 | Skill              | Purpose                                                                                                                     |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
