@@ -8,14 +8,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import {
-	type AssistantMessage,
-	getOAuthProviders,
-	type ImageContent,
-	type Message,
-	type Model,
-	type OAuthProvider,
-} from "@mariozechner/pi-ai";
+import type { AssistantMessage, ImageContent, Message, Model, OAuthProviderId } from "@mariozechner/pi-ai";
 import type {
 	AutocompleteItem,
 	EditorAction,
@@ -3307,13 +3300,11 @@ export class InteractiveMode {
 		// Helper to update session's scoped models (session-only, no persist)
 		const updateSessionModels = async (enabledIds: Set<string>) => {
 			if (enabledIds.size > 0 && enabledIds.size < allModels.length) {
-				// Use current session thinking level, not settings default
-				const currentThinkingLevel = this.session.thinkingLevel;
 				const newScopedModels = await resolveModelScope(Array.from(enabledIds), this.session.modelRegistry);
 				this.session.setScopedModels(
 					newScopedModels.map((sm) => ({
 						model: sm.model,
-						thinkingLevel: sm.thinkingLevel ?? currentThinkingLevel,
+						thinkingLevel: sm.thinkingLevel,
 					})),
 				);
 			} else {
@@ -3627,7 +3618,9 @@ export class InteractiveMode {
 						await this.showLoginDialog(providerId);
 					} else {
 						// Logout flow
-						const providerInfo = getOAuthProviders().find((p) => p.id === providerId);
+						const providerInfo = this.session.modelRegistry.authStorage
+							.getOAuthProviders()
+							.find((p) => p.id === providerId);
 						const providerName = providerInfo?.name || providerId;
 
 						try {
@@ -3650,7 +3643,7 @@ export class InteractiveMode {
 	}
 
 	private async showLoginDialog(providerId: string): Promise<void> {
-		const providerInfo = getOAuthProviders().find((p) => p.id === providerId);
+		const providerInfo = this.session.modelRegistry.authStorage.getOAuthProviders().find((p) => p.id === providerId);
 		const providerName = providerInfo?.name || providerId;
 
 		// Providers that use callback servers (can paste redirect URL)
@@ -3684,7 +3677,7 @@ export class InteractiveMode {
 		};
 
 		try {
-			await this.session.modelRegistry.authStorage.login(providerId as OAuthProvider, {
+			await this.session.modelRegistry.authStorage.login(providerId as OAuthProviderId, {
 				onAuth: (info: { url: string; instructions?: string }) => {
 					dialog.showAuth(info.url, info.instructions);
 
