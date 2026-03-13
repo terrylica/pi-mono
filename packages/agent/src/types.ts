@@ -11,7 +11,15 @@ import type {
 } from "@mariozechner/pi-ai";
 import type { Static, TSchema } from "@sinclair/typebox";
 
-/** Stream function - can return sync or Promise for async config lookup */
+/**
+ * Stream function used by the agent loop.
+ *
+ * Contract:
+ * - Must not throw or return a rejected promise for request/model/runtime failures.
+ * - Must return an AssistantMessageEventStream.
+ * - Failures must be encoded in the returned stream via protocol events and a
+ *   final AssistantMessage with stopReason "error" or "aborted" and errorMessage.
+ */
 export type StreamFn = (
 	...args: Parameters<typeof streamSimple>
 ) => ReturnType<typeof streamSimple> | Promise<ReturnType<typeof streamSimple>>;
@@ -28,6 +36,9 @@ export interface AgentLoopConfig extends SimpleStreamOptions {
 	 * Each AgentMessage must be converted to a UserMessage, AssistantMessage, or ToolResultMessage
 	 * that the LLM can understand. AgentMessages that cannot be converted (e.g., UI-only notifications,
 	 * status messages) should be filtered out.
+	 *
+	 * Contract: must not throw or reject. Return a safe fallback value instead.
+	 * Throwing interrupts the low-level agent loop without producing a normal event sequence.
 	 *
 	 * @example
 	 * ```typescript
@@ -54,6 +65,9 @@ export interface AgentLoopConfig extends SimpleStreamOptions {
 	 * - Context window management (pruning old messages)
 	 * - Injecting context from external sources
 	 *
+	 * Contract: must not throw or reject. Return the original messages or another
+	 * safe fallback value instead.
+	 *
 	 * @example
 	 * ```typescript
 	 * transformContext: async (messages) => {
@@ -71,6 +85,8 @@ export interface AgentLoopConfig extends SimpleStreamOptions {
 	 *
 	 * Useful for short-lived OAuth tokens (e.g., GitHub Copilot) that may expire
 	 * during long-running tool execution phases.
+	 *
+	 * Contract: must not throw or reject. Return undefined when no key is available.
 	 */
 	getApiKey?: (provider: string) => Promise<string | undefined> | string | undefined;
 
@@ -82,6 +98,8 @@ export interface AgentLoopConfig extends SimpleStreamOptions {
 	 * these messages are added to the context before the next LLM call.
 	 *
 	 * Use this for "steering" the agent while it's working.
+	 *
+	 * Contract: must not throw or reject. Return [] when no steering messages are available.
 	 */
 	getSteeringMessages?: () => Promise<AgentMessage[]>;
 
@@ -93,6 +111,8 @@ export interface AgentLoopConfig extends SimpleStreamOptions {
 	 * continues with another turn.
 	 *
 	 * Use this for follow-up messages that should wait until the agent finishes.
+	 *
+	 * Contract: must not throw or reject. Return [] when no follow-up messages are available.
 	 */
 	getFollowUpMessages?: () => Promise<AgentMessage[]>;
 }
