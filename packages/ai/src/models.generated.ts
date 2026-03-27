@@ -3928,6 +3928,23 @@ export const MODELS = {
 			contextWindow: 1048576,
 			maxTokens: 65536,
 		} satisfies Model<"google-vertex">,
+		"gemini-3.1-pro-preview-customtools": {
+			id: "gemini-3.1-pro-preview-customtools",
+			name: "Gemini 3.1 Pro Preview Custom Tools (Vertex)",
+			api: "google-vertex",
+			provider: "google-vertex",
+			baseUrl: "https://{location}-aiplatform.googleapis.com",
+			reasoning: true,
+			input: ["text", "image"],
+			cost: {
+				input: 2,
+				output: 12,
+				cacheRead: 0.2,
+				cacheWrite: 0,
+			},
+			contextWindow: 1048576,
+			maxTokens: 65536,
+		} satisfies Model<"google-vertex">,
 	},
 	"groq": {
 		"deepseek-r1-distill-llama-70b": {
@@ -10131,8 +10148,8 @@ export const MODELS = {
 			reasoning: false,
 			input: ["text", "image"],
 			cost: {
-				input: 0.19999999999999998,
-				output: 0.19999999999999998,
+				input: 0.09999999999999999,
+				output: 0.09999999999999999,
 				cacheRead: 0,
 				cacheWrite: 0,
 			},
