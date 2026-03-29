@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.63.2] - 2026-03-29
+
 ### Added
 
 - Added `Agent.signal` to expose the active abort signal for the current turn, allowing callers to forward cancellation into nested async work ([#2660](https://github.com/badlogic/pi-mono/issues/2660))
