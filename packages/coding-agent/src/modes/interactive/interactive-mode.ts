@@ -70,6 +70,7 @@ import { getChangelogPath, getNewEntries, parseChangelog } from "../../utils/cha
 import { copyToClipboard } from "../../utils/clipboard.js";
 import { extensionForImageMimeType, readClipboardImage } from "../../utils/clipboard-image.js";
 import { parseGitUrl } from "../../utils/git.js";
+import { killTrackedDetachedChildren } from "../../utils/shell.js";
 import { ensureTool } from "../../utils/tools-manager.js";
 import { ArminComponent } from "./components/armin.js";
 import { AssistantMessageComponent } from "./components/assistant-message.js";
@@ -2941,6 +2942,7 @@ export class InteractiveMode {
 
 		for (const signal of signals) {
 			const handler = () => {
+				killTrackedDetachedChildren();
 				void this.shutdown();
 			};
 			process.on(signal, handler);
@@ -4118,22 +4120,24 @@ export class InteractiveMode {
 
 		this.resetExtensionUI();
 
-		const loader = new BorderedLoader(
-			this.ui,
-			theme,
-			"Reloading keybindings, extensions, skills, prompts, themes...",
-			{
-				cancellable: false,
-			},
+		const reloadBox = new Container();
+		const borderColor = (s: string) => theme.fg("border", s);
+		reloadBox.addChild(new DynamicBorder(borderColor));
+		reloadBox.addChild(new Spacer(1));
+		reloadBox.addChild(
+			new Text(theme.fg("muted", "Reloading keybindings, extensions, skills, prompts, themes..."), 1, 0),
 		);
+		reloadBox.addChild(new Spacer(1));
+		reloadBox.addChild(new DynamicBorder(borderColor));
+
 		const previousEditor = this.editor;
 		this.editorContainer.clear();
-		this.editorContainer.addChild(loader);
-		this.ui.setFocus(loader);
-		this.ui.requestRender();
+		this.editorContainer.addChild(reloadBox);
+		this.ui.setFocus(reloadBox);
+		this.ui.requestRender(true);
+		await new Promise((resolve) => process.nextTick(resolve));
 
-		const dismissLoader = (editor: Component) => {
-			loader.dispose();
+		const dismissReloadBox = (editor: Component) => {
 			this.editorContainer.clear();
 			this.editorContainer.addChild(editor);
 			this.ui.setFocus(editor);
@@ -4166,7 +4170,7 @@ export class InteractiveMode {
 				this.setupExtensionShortcuts(runner);
 			}
 			this.rebuildChatFromMessages();
-			dismissLoader(this.editor as Component);
+			dismissReloadBox(this.editor as Component);
 			this.showLoadedResources({
 				force: false,
 				showDiagnosticsWhenQuiet: true,
@@ -4177,7 +4181,7 @@ export class InteractiveMode {
 			}
 			this.showStatus("Reloaded keybindings, extensions, skills, prompts, themes");
 		} catch (error) {
-			dismissLoader(previousEditor as Component);
+			dismissReloadBox(previousEditor as Component);
 			this.showError(`Reload failed: ${error instanceof Error ? error.message : String(error)}`);
 		}
 	}
