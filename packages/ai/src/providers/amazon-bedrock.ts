@@ -15,11 +15,14 @@ import {
 	type ConverseStreamMetadataEvent,
 	ImageFormat,
 	type Message,
+	type ServiceInputTypes,
+	type ServiceOutputTypes,
 	type SystemContentBlock,
 	type ToolChoice,
 	type ToolConfiguration,
 	ToolResultStatus,
 } from "@aws-sdk/client-bedrock-runtime";
+import type { FinalizeRequestMiddleware } from "@smithy/types";
 
 import { calculateCost } from "../models.js";
 import type {
@@ -74,6 +77,12 @@ export interface BedrockOptions extends StreamOptions {
 	 * Tags appear in AWS Cost Explorer split cost allocation data.
 	 * @see https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ConverseStream.html */
 	requestMetadata?: Record<string, string>;
+	/** Bearer token for Bedrock API key authentication.
+	 * When set, bypasses SigV4 signing and sends Authorization: Bearer <token> instead.
+	 * Requires `bedrock:CallWithBearerToken` IAM permission on the token's identity.
+	 * Set via AWS_BEARER_TOKEN_BEDROCK env var or pass directly.
+	 * @see https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazonbedrock.html */
+	bearerToken?: string;
 }
 
 type Block = (TextContent | ThinkingContent | ToolCall) & { index?: number; partialJson?: string };
@@ -110,6 +119,9 @@ export const streamBedrock: StreamFunction<"bedrock-converse-stream", BedrockOpt
 			profile: options.profile,
 		};
 
+		// Resolve bearer token for API key auth (bypasses SigV4)
+		const bearerToken = options.bearerToken || process.env.AWS_BEARER_TOKEN_BEDROCK || undefined;
+
 		// in Node.js/Bun environment only
 		if (typeof process !== "undefined" && (process.versions?.node || process.versions?.bun)) {
 			// Region resolution: explicit option > env vars > SDK default chain.
@@ -127,6 +139,15 @@ export const streamBedrock: StreamFunction<"bedrock-converse-stream", BedrockOpt
 				config.credentials = {
 					accessKeyId: "dummy-access-key",
 					secretAccessKey: "dummy-secret-key",
+				};
+			}
+
+			// Bearer token auth: use API key instead of SigV4 signing.
+			// Requires bedrock:CallWithBearerToken IAM permission.
+			if (bearerToken && process.env.AWS_BEDROCK_SKIP_AUTH !== "1") {
+				config.credentials = {
+					accessKeyId: "bearer-token-auth",
+					secretAccessKey: "bearer-token-auth",
 				};
 			}
 
@@ -163,6 +184,34 @@ export const streamBedrock: StreamFunction<"bedrock-converse-stream", BedrockOpt
 
 		try {
 			const client = new BedrockRuntimeClient(config);
+
+			// Inject bearer token middleware after SigV4 signing
+			if (bearerToken) {
+				const bearerTokenAuthMiddleware: FinalizeRequestMiddleware<ServiceInputTypes, ServiceOutputTypes> =
+					(next) => async (args) => {
+						const request = args.request;
+						if (
+							typeof request === "object" &&
+							request !== null &&
+							"headers" in request &&
+							typeof request.headers === "object" &&
+							request.headers !== null
+						) {
+							const headers = request.headers as Record<string, string>;
+							headers.authorization = `Bearer ${bearerToken}`;
+							delete headers["x-amz-date"];
+							delete headers["x-amz-security-token"];
+							delete headers["x-amz-content-sha256"];
+						}
+						return next(args);
+					};
+
+				client.middlewareStack.addRelativeTo(bearerTokenAuthMiddleware, {
+					relation: "after",
+					toMiddleware: "awsAuthMiddleware",
+					name: "bearerTokenAuth",
+				});
+			}
 
 			const cacheRetention = resolveCacheRetention(options.cacheRetention);
 			let commandInput = {

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed Anthropic and Bedrock adaptive-thinking payload tests to expect the default `display: "summarized"` field when reasoning is enabled.
+
+## [0.67.6] - 2026-04-16
+
 ### Added
 
 - Added `onResponse` to `StreamOptions` so callers can inspect provider HTTP status and headers after each response arrives and before the response stream is consumed ([#3128](https://github.com/badlogic/pi-mono/issues/3128))

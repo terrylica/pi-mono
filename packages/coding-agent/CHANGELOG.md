@@ -4,9 +4,39 @@
 
 ### Fixed
 
+- Fixed missing root exports for `RpcClient` and RPC protocol types from `@mariozechner/pi-coding-agent`, so ESM consumers can import them from the main package entrypoint ([#3275](https://github.com/badlogic/pi-mono/issues/3275))
+- Fixed Bun binary asset path resolution to honor `PI_PACKAGE_DIR` for built-in themes, HTML export templates, and interactive bundled assets ([#3074](https://github.com/badlogic/pi-mono/issues/3074))
+- Fixed user-message turn spacing in interactive mode by restoring an inter-message spacer before user turns (except the first user message), preventing assistant and user blocks from rendering flush together.
+- Fixed interactive `/import` handling to route missing JSONL files through the non-fatal `SessionImportFileNotFoundError` path, and documented the `importFromJsonl()` exceptions (`SessionImportFileNotFoundError`, `MissingSessionCwdError`).
+
+## [0.67.6] - 2026-04-16
+
+### New Features
+
+- Prompt templates support an `argument-hint` frontmatter field that renders before the description in the `/` autocomplete dropdown, using `<angle>` for required and `[square]` for optional arguments. See [docs/prompt-templates.md#argument-hints](docs/prompt-templates.md#argument-hints).
+- New `after_provider_response` extension hook lets extensions inspect provider HTTP status codes and headers immediately after each response is received and before stream consumption begins. See [docs/extensions.md](docs/extensions.md).
+- Compact interactive startup header with a comma-separated view of loaded AGENTS.md files, prompt templates, skills, and extensions. Press `Ctrl+O` to toggle the expanded listing.
+- Markdown links in assistant output now render as OSC 8 hyperlinks on terminals that advertise support; unknown terminals and tmux/screen default to plain text so URLs are never silently dropped.
+
+### Added
+
+- Added `argument-hint` frontmatter field for prompt templates, displayed before the description in the autocomplete dropdown ([#2780](https://github.com/badlogic/pi-mono/pull/2780) by [@andresvi94](https://github.com/andresvi94))
+- Added `after_provider_response` extension hook so extensions can inspect provider HTTP status codes and headers after each provider response is received and before stream consumption begins ([#3128](https://github.com/badlogic/pi-mono/issues/3128))
+- Added OSC 8 hyperlink rendering for markdown links when the terminal advertises support ([#3248](https://github.com/badlogic/pi-mono/pull/3248) by [@ofa1](https://github.com/ofa1))
+
+### Changed
+
+- Changed interactive startup header to a compact, comma-separated view of loaded AGENTS.md files, prompt templates, skills, and extensions, with `Ctrl+O` to toggle the expanded listing ([#3267](https://github.com/badlogic/pi-mono/pull/3267))
+- Tightened hyperlink capability detection to default `hyperlinks: false` for unknown terminals and force it off under tmux/screen (including nested sessions), preventing markdown link URLs from disappearing on terminals that silently swallow OSC 8 sequences ([#3248](https://github.com/badlogic/pi-mono/pull/3248))
+
+### Fixed
+
+- Fixed interactive user message rendering to keep bottom padding visible in terminals affected by OSC 133 prompt markers without adding an extra blank line before the following assistant message ([#3090](https://github.com/badlogic/pi-mono/issues/3090))
 - Fixed `--verbose` startup output to begin with expanded startup help and loaded resource listings after the compact startup header change ([#3147](https://github.com/badlogic/pi-mono/issues/3147))
 - Fixed `find` tool returning no results for path-based glob patterns such as `src/**/*.spec.ts` or `some/parent/child/**` by switching fd into full-path mode and normalizing the pattern when it contains a `/` ([#3302](https://github.com/badlogic/pi-mono/issues/3302))
 - Fixed `find` tool applying nested `.gitignore` rules across sibling directories (e.g. rules from `a/.gitignore` hiding matching files under `b/`) by dropping the manual `--ignore-file` collection and delegating to fd's hierarchical `.gitignore` handling via `--no-require-git` ([#3303](https://github.com/badlogic/pi-mono/issues/3303))
+- Fixed OpenAI Responses prompt caching for non-`api.openai.com` base URLs (OpenAI-compatible proxies such as litellm, theclawbay) by sending the `session_id` and `x-client-request-id` cache-affinity headers unconditionally when a `sessionId` is provided, matching the official Codex CLI behavior ([#3264](https://github.com/badlogic/pi-mono/pull/3264) by [@vegarsti](https://github.com/vegarsti))
+- Fixed the `preset` example extension to snapshot the active model, thinking level, and tool set on the first preset application and restore that state when cycling back to `(none)`, instead of falling back to a hardcoded default tool list ([#3272](https://github.com/badlogic/pi-mono/pull/3272) by [@stembi](https://github.com/stembi))
 
 ## [0.67.5] - 2026-04-16
 
@@ -38,6 +68,7 @@
 
 - Fixed markdown strikethrough parsing in interactive rendering and HTML export to require strict double-tilde delimiters (`~~text~~`) with non-whitespace boundaries.
 - Fixed shutdown handling to kill tracked detached `bash` tool child processes on exit signals, preventing orphaned background processes.
+>>>>>>> 165603189b60231ed8b88274729471cee676a0c0
 - Fixed flaky `edit-tool-no-full-redraw` TUI tests by waiting for asynchronous preview and preflight error rendering instead of relying on fixed render ticks.
 - Fixed `kimi-coding` default model selection to use `kimi-for-coding` instead of `kimi-k2-thinking` ([#3242](https://github.com/badlogic/pi-mono/issues/3242))
 - Fixed `ctrl+z` on native Windows to avoid crashing interactive mode, disable the default suspend binding there, and show a status message when suspend is invoked manually ([#3191](https://github.com/badlogic/pi-mono/issues/3191))
@@ -270,8 +301,6 @@ await runtime.fork("entry-id");
 - Added `defineTool()` so standalone and array-based custom tool definitions keep inferred parameter types without manual casts ([#2746](https://github.com/badlogic/pi-mono/issues/2746))
 
 - Added label timestamps to the session tree with a `Shift+T` toggle in `/tree`, smart date formatting, and timestamp preservation through branching ([#2691](https://github.com/badlogic/pi-mono/pull/2691) by [@w-winter](https://github.com/w-winter))
-
-- Added `argument-hint` frontmatter field for prompt templates, displayed before the description in the autocomplete dropdown ([#2761](https://github.com/badlogic/pi-mono/issues/2761))
 
 ### Fixed
 
