@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed `--verbose` startup output to begin with expanded startup help and loaded resource listings after the compact startup header change ([#3147](https://github.com/badlogic/pi-mono/issues/3147))
+- Fixed `find` tool returning no results for path-based glob patterns such as `src/**/*.spec.ts` or `some/parent/child/**` by switching fd into full-path mode and normalizing the pattern when it contains a `/` ([#3302](https://github.com/badlogic/pi-mono/issues/3302))
+- Fixed `find` tool applying nested `.gitignore` rules across sibling directories (e.g. rules from `a/.gitignore` hiding matching files under `b/`) by dropping the manual `--ignore-file` collection and delegating to fd's hierarchical `.gitignore` handling via `--no-require-git` ([#3303](https://github.com/badlogic/pi-mono/issues/3303))
+
 ## [0.67.5] - 2026-04-16
 
 ### Fixed
@@ -264,6 +270,8 @@ await runtime.fork("entry-id");
 - Added `defineTool()` so standalone and array-based custom tool definitions keep inferred parameter types without manual casts ([#2746](https://github.com/badlogic/pi-mono/issues/2746))
 
 - Added label timestamps to the session tree with a `Shift+T` toggle in `/tree`, smart date formatting, and timestamp preservation through branching ([#2691](https://github.com/badlogic/pi-mono/pull/2691) by [@w-winter](https://github.com/w-winter))
+
+- Added `argument-hint` frontmatter field for prompt templates, displayed before the description in the autocomplete dropdown ([#2761](https://github.com/badlogic/pi-mono/issues/2761))
 
 ### Fixed
 
