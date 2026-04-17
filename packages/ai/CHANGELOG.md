@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed direct Mistral tool definitions to strip TypeBox symbol metadata before passing schemas to the SDK, restoring tool calls after the SDK's stricter outbound validation ([#3361](https://github.com/badlogic/pi-mono/issues/3361))
+
+## [0.67.67] - 2026-04-17
+
 ### Added
 
 - Added Bedrock Converse bearer-token authentication via `AWS_BEARER_TOKEN_BEDROCK`, enabling API-key style access without SigV4 credentials ([#3125](https://github.com/badlogic/pi-mono/pull/3125) by [@wirjo](https://github.com/wirjo))

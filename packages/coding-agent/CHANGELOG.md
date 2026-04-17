@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.67.67] - 2026-04-17
+
 ### New Features
 
 - Bedrock sessions can now authenticate with `AWS_BEARER_TOKEN_BEDROCK`, enabling Converse API access without local SigV4 credentials. See [docs/providers.md#amazon-bedrock](docs/providers.md#amazon-bedrock).
