@@ -151,7 +151,7 @@ Node.js built-ins (`node:fs`, `node:path`, etc.) are also available.
 
 ## Writing an Extension
 
-An extension exports a default function that receives `ExtensionAPI`:
+An extension exports a default factory function that receives `ExtensionAPI`. The factory can be synchronous or asynchronous:
 
 ```typescript
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
@@ -175,6 +175,45 @@ export default function (pi: ExtensionAPI) {
 ```
 
 Extensions are loaded via [jiti](https://github.com/unjs/jiti), so TypeScript works without compilation.
+
+If the factory returns a `Promise`, pi awaits it before continuing startup. That means async initialization completes before `session_start`, before `resources_discover`, and before provider registrations queued via `pi.registerProvider()` are flushed.
+
+### Async factory functions
+
+Use an async factory for one-time startup work such as fetching remote configuration or dynamically discovering available models.
+
+```typescript
+import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+
+export default async function (pi: ExtensionAPI) {
+  const response = await fetch("http://localhost:1234/v1/models");
+  const payload = (await response.json()) as {
+    data: Array<{
+      id: string;
+      name?: string;
+      context_window?: number;
+      max_tokens?: number;
+    }>;
+  };
+
+  pi.registerProvider("local-openai", {
+    baseUrl: "http://localhost:1234/v1",
+    apiKey: "LOCAL_OPENAI_API_KEY",
+    api: "openai-completions",
+    models: payload.data.map((model) => ({
+      id: model.id,
+      name: model.name ?? model.id,
+      reasoning: false,
+      input: ["text"],
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      contextWindow: model.context_window ?? 128000,
+      maxTokens: model.max_tokens ?? 4096,
+    })),
+  });
+}
+```
+
+This pattern makes the fetched models available during normal startup and to `pi --list-models`.
 
 ### Extension Styles
 
@@ -1371,6 +1410,8 @@ Register or override a model provider dynamically. Useful for proxies, custom en
 
 Calls made during the extension factory function are queued and applied once the runner initialises. Calls made after that — for example from a command handler following a user setup flow — take effect immediately without requiring a `/reload`.
 
+If you need to discover models from a remote endpoint, prefer an async extension factory over deferring the fetch to `session_start`. pi waits for the factory before startup continues, so the registered models are available immediately, including to `pi --list-models`.
+
 ```typescript
 // Register a new provider with custom models
 pi.registerProvider("my-proxy", {
@@ -2008,8 +2049,16 @@ ctx.ui.setWorkingMessage("Thinking deeply...");
 ctx.ui.setWorkingMessage();  // Restore default
 
 // Working indicator (shown during streaming)
-ctx.ui.setWorkingIndicator({ frames: ["●"] });  // Static dot
-ctx.ui.setWorkingIndicator({ frames: ["·", "•", "●", "•"], intervalMs: 120 });
+ctx.ui.setWorkingIndicator({ frames: [ctx.ui.theme.fg("accent", "●")] });  // Static dot
+ctx.ui.setWorkingIndicator({
+  frames: [
+    ctx.ui.theme.fg("dim", "·"),
+    ctx.ui.theme.fg("muted", "•"),
+    ctx.ui.theme.fg("accent", "●"),
+    ctx.ui.theme.fg("muted", "•"),
+  ],
+  intervalMs: 120,
+});
 ctx.ui.setWorkingIndicator({ frames: [] });  // Hide indicator
 ctx.ui.setWorkingIndicator();  // Restore default spinner
 
@@ -2056,6 +2105,8 @@ if (!result.success) {
 ctx.ui.setTheme(lightTheme!);  // Or switch by Theme object
 ctx.ui.theme.fg("accent", "styled text");  // Access current theme
 ```
+
+Custom working-indicator frames are rendered verbatim. If you want colors, add them to the frame strings yourself, for example with `ctx.ui.theme.fg(...)`.
 
 ### Custom Components
 
