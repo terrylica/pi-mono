@@ -67,6 +67,7 @@ import {
 	type TurnStartEvent,
 	wrapRegisteredTools,
 } from "./extensions/index.js";
+import { emitSessionShutdownEvent } from "./extensions/runner.js";
 import type { BashExecutionMessage, CustomMessage } from "./messages.js";
 import type { ModelRegistry } from "./model-registry.js";
 import { expandPromptTemplate, type PromptTemplate } from "./prompt-templates.js";
@@ -76,7 +77,7 @@ import { CURRENT_SESSION_VERSION, getLatestCompactionEntry, type SessionHeader }
 import type { SettingsManager } from "./settings-manager.js";
 import type { SlashCommandInfo } from "./slash-commands.js";
 import { createSyntheticSourceInfo, type SourceInfo } from "./source-info.js";
-import { buildSystemPrompt } from "./system-prompt.js";
+import { type BuildSystemPromptOptions, buildSystemPrompt } from "./system-prompt.js";
 import { type BashOperations, createLocalBashOperations } from "./tools/bash.js";
 import { createAllToolDefinitions } from "./tools/index.js";
 import { createToolDefinitionFromAgentTool } from "./tools/tool-definition-wrapper.js";
@@ -300,6 +301,7 @@ export class AgentSession {
 
 	// Base system prompt (without extension appends) - used to apply fresh appends each turn
 	private _baseSystemPrompt = "";
+	private _baseSystemPromptOptions!: BuildSystemPromptOptions;
 
 	constructor(config: AgentSessionConfig) {
 		this.agent = config.agent;
@@ -906,7 +908,7 @@ export class AgentSession {
 		const loadedSkills = this._resourceLoader.getSkills().skills;
 		const loadedContextFiles = this._resourceLoader.getAgentsFiles().agentsFiles;
 
-		return buildSystemPrompt({
+		this._baseSystemPromptOptions = {
 			cwd: this._cwd,
 			skills: loadedSkills,
 			contextFiles: loadedContextFiles,
@@ -915,7 +917,8 @@ export class AgentSession {
 			selectedTools: validToolNames,
 			toolSnippets,
 			promptGuidelines,
-		});
+		};
+		return buildSystemPrompt(this._baseSystemPromptOptions);
 	}
 
 	// =========================================================================
@@ -1048,6 +1051,7 @@ export class AgentSession {
 				expandedText,
 				currentImages,
 				this._baseSystemPrompt,
+				this._baseSystemPromptOptions,
 			);
 			// Add all custom messages from extensions
 			if (result?.messages) {
@@ -2369,7 +2373,7 @@ export class AgentSession {
 
 	async reload(): Promise<void> {
 		const previousFlagValues = this._extensionRunner.getFlagValues();
-		await this._extensionRunner.emit({ type: "session_shutdown" });
+		await emitSessionShutdownEvent(this._extensionRunner, { type: "session_shutdown", reason: "reload" });
 		await this.settingsManager.reload();
 		resetApiProviders();
 		await this._resourceLoader.reload();
