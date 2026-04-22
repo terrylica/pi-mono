@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.68.1] - 2026-04-22
+
 ### Fixed
 
 - Fixed `streamProxy()` to preserve the proxy-safe serializable subset of stream options, including session, transport, retry-delay, metadata, header, cache-retention, and thinking-budget settings ([#3512](https://github.com/badlogic/pi-mono/issues/3512))
