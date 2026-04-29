@@ -180,12 +180,14 @@ function graphemeWidth(segment: string): number {
 
 	let width = eastAsianWidth(cp);
 
-	// Trailing halfwidth/fullwidth forms
+	// Trailing halfwidth/fullwidth forms and AM vowels that segment with a base.
 	if (segment.length > 1) {
 		for (const char of segment.slice(1)) {
 			const c = char.codePointAt(0)!;
 			if (c >= 0xff00 && c <= 0xffef) {
 				width += eastAsianWidth(c);
+			} else if (c === 0x0e33 || c === 0x0eb3) {
+				width += 1;
 			}
 		}
 	}
@@ -251,6 +253,16 @@ export function visibleWidth(str: string): number {
 	widthCache.set(str, width);
 
 	return width;
+}
+
+/**
+ * Normalize text for terminal output without changing logical editor content.
+ * Some terminals render precomposed Thai/Lao AM vowels inconsistently during
+ * differential repaint. Their compatibility decompositions have the same cell
+ * width but avoid stale-cell artifacts in terminal renderers.
+ */
+export function normalizeTerminalOutput(str: string): string {
+	return str.replace(/\u0e33/g, "\u0e4d\u0e32").replace(/\u0eb3/g, "\u0ecd\u0eb2");
 }
 
 /**
