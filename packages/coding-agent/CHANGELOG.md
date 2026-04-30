@@ -2,8 +2,13 @@
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- Removed built-in Google Gemini CLI and Google Antigravity support. Existing configurations using those providers must switch to another supported provider.
+
 ### New Features
 
+- Cloudflare AI Gateway provider support with `CLOUDFLARE_API_KEY`/`CLOUDFLARE_ACCOUNT_ID`/`CLOUDFLARE_GATEWAY_ID`, default model resolution, and `/login` display. See [docs/providers.md#cloudflare-ai-gateway](docs/providers.md#cloudflare-ai-gateway). ([#3856](https://github.com/badlogic/pi-mono/pull/3856) by [@mchenco](https://github.com/mchenco)).
 - Moonshot AI provider support with `MOONSHOT_API_KEY`, default model resolution, and `/login` display.
 - Mistral Medium 3.5 built-in model support. See [docs/providers.md#api-keys](docs/providers.md#api-keys). ([#4009](https://github.com/badlogic/pi-mono/pull/4009) by [@technocidal](https://github.com/technocidal)).
 - Extension APIs can replace finalized `message_end` messages, wrap custom editor factories via `ctx.ui.getEditorComponent()`, and observe thinking level changes. See [docs/extensions.md#message_start--message_update--message_end](docs/extensions.md#message_start--message_update--message_end), [docs/extensions.md#widgets-status-and-footer](docs/extensions.md#widgets-status-and-footer), and [docs/extensions.md#thinking_level_select](docs/extensions.md#thinking_level_select).
@@ -11,6 +16,7 @@
 
 ### Added
 
+- Added Cloudflare AI Gateway as a built-in provider with `CLOUDFLARE_API_KEY`/`CLOUDFLARE_ACCOUNT_ID`/`CLOUDFLARE_GATEWAY_ID` setup, default model resolution, `/login` display support, and provider documentation ([#3856](https://github.com/badlogic/pi-mono/pull/3856) by [@mchenco](https://github.com/mchenco)).
 - Added Moonshot AI as a built-in provider with `MOONSHOT_API_KEY` setup, default model resolution, and `/login` display support.
 - Added Mistral Medium 3.5 built-in model support via `@mariozechner/pi-ai` ([#4009](https://github.com/badlogic/pi-mono/pull/4009) by [@technocidal](https://github.com/technocidal)).
 - Added routed OpenAI-compatible response model metadata in assistant messages, so providers such as OpenRouter can expose the concrete model used ([#3968](https://github.com/badlogic/pi-mono/pull/3968) by [@purrgrammer](https://github.com/purrgrammer)).
@@ -22,6 +28,7 @@
 
 ### Fixed
 
+- Fixed WSL clipboard image paste by passing the PowerShell save path directly instead of through a custom environment variable ([#2469](https://github.com/badlogic/pi-mono/issues/2469)).
 - Fixed Google Vertex Gemini 3 tool call replay for unsigned tool calls ([#4032](https://github.com/badlogic/pi-mono/issues/4032)).
 - Fixed blocked `edit` tool results rendering the rejection reason twice after interactive extension confirmation ([#3830](https://github.com/badlogic/pi-mono/issues/3830)).
 - Fixed extension-triggered thinking level changes refreshing the interactive editor border immediately ([#3888](https://github.com/badlogic/pi-mono/issues/3888)).
@@ -46,6 +53,7 @@
 
 ### Removed
 
+- Removed the discontinued Qwen CLI OAuth custom provider extension example ([#3832](https://github.com/badlogic/pi-mono/pull/3832) by [@4h9fbZ](https://github.com/4h9fbZ)).
 - Removed Google Gemini CLI and Google Antigravity built-in login, default model, documentation, and example extension support.
 
 ## [0.70.6] - 2026-04-28
