@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.71.0] - 2026-04-30
+
 ### Breaking Changes
 
 - Removed built-in Google Gemini CLI and Google Antigravity support. Existing configurations using those providers must switch to another supported provider.
