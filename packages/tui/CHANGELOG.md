@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.73.0] - 2026-05-04
+
 ### Fixed
 
 - Fixed fuzzy ranking to prioritize exact matches in selector and autocomplete results.

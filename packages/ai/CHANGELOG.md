@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.73.0] - 2026-05-04
+
 ### Breaking Changes
 
 - Switched the built-in `xiaomi` provider endpoint from Token Plan AMS (`https://token-plan-ams.xiaomimimo.com/anthropic`) to API billing (`https://api.xiaomimimo.com/anthropic`). `XIAOMI_API_KEY` now refers to the API billing key from [platform.xiaomimimo.com](https://platform.xiaomimimo.com). Users still on Token Plan must move to the appropriate `xiaomi-token-plan-*` provider and set the corresponding env var ([#4112](https://github.com/badlogic/pi-mono/pull/4112) by [@Phoen1xCode](https://github.com/Phoen1xCode)).

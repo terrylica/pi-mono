@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.73.0] - 2026-05-04
+
 ### New Features
 
 - **Xiaomi MiMo API billing and regional Token Plan providers** - `xiaomi` now uses API billing, with separate `xiaomi-token-plan-{cn,ams,sgp}` providers. See [docs/providers.md#api-keys](docs/providers.md#api-keys) and [README.md#providers--models](README.md#providers--models). ([#4112](https://github.com/badlogic/pi-mono/pull/4112) by [@Phoen1xCode](https://github.com/Phoen1xCode))
