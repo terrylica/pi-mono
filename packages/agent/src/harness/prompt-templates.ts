@@ -169,7 +169,7 @@ function errorMessage(error: unknown, fallback: string): string {
 	return error instanceof Error ? error.message : fallback;
 }
 
-/** Parse slash-command arguments using simple shell-style single and double quotes. */
+/** Parse an argument string using simple shell-style single and double quotes. */
 export function parseCommandArgs(argsString: string): string[] {
 	const args: string[] = [];
 	let current = "";
@@ -211,7 +211,7 @@ export function substituteArgs(content: string, args: string[]): string {
 	return result;
 }
 
-/** Expand a prompt template with positional command arguments. */
-export function expandPromptTemplate(template: PromptTemplate, args: string[] = []): string {
+/** Format a prompt template invocation with positional arguments. */
+export function formatPromptTemplateInvocation(template: PromptTemplate, args: string[] = []): string {
 	return substituteArgs(template.content, args);
 }
