@@ -1,6 +1,5 @@
 import type { ImageContent, Model, SimpleStreamOptions, TextContent, Transport } from "@earendil-works/pi-ai";
-import type { QueueMode } from "../agent.js";
-import type { AgentEvent, AgentMessage, AgentTool, ThinkingLevel } from "../index.js";
+import type { AgentEvent, AgentMessage, AgentTool, QueueMode, ThinkingLevel } from "../index.js";
 import type { Session } from "./session/session.js";
 
 /** Result of a fallible operation. Expected failures are returned as `ok: false` instead of thrown. */
@@ -136,6 +135,22 @@ export class ExecutionError extends Error {
 	) {
 		super(message, cause === undefined ? undefined : { cause });
 		this.name = "ExecutionError";
+	}
+}
+
+/** Stable compaction error codes returned by compaction helpers. */
+export type CompactionErrorCode = "aborted" | "summarization_failed" | "invalid_session" | "unknown";
+
+/** Error returned by compaction helpers. */
+export class CompactionError extends Error {
+	constructor(
+		/** Backend-independent error code. */
+		public code: CompactionErrorCode,
+		message: string,
+		cause?: unknown,
+	) {
+		super(message, cause === undefined ? undefined : { cause });
+		this.name = "CompactionError";
 	}
 }
 
